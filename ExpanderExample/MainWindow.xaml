@@ -1,0 +1,30 @@
+﻿<Window x:Class="ExpanderExample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ExpanderExample"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="400" Width="400">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        
+        <StackPanel Grid.Row="1" Background="LightBlue">
+            <TextBlock FontSize="16" Text="Name"/>
+            <Expander>
+                <TextBlock FontSize="14" Text="Description"/>
+            </Expander>
+              
+
+            <Button x:Name="detailsBtn" Content="Details" Width="100" Height="25" Click="detailsBtn_Click" HorizontalAlignment="center"/>
+        </StackPanel>
+
+        <Expander Background="LightGray" BorderThickness="0" Name="detailsexpender" Grid.Column="1">
+            <Rectangle Fill="LightGray" Width="200" />
+        </Expander>
+    </Grid>
+</Window>
+    

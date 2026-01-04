@@ -1,0 +1,33 @@
+﻿<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <!--<TextBlock x:Name="statusTb" FontSize="24"/>
+        <Button x:Name="runToggleBtn" Content="Run" FontSize="20" Width="100" Height="30" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,20" Click="runToggleBtn_Click"/>-->
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+
+        <Rectangle Grid.Row="0" Fill="LightGray"/>
+        <Rectangle Grid.Row="1" Fill="Red"/>
+        <Rectangle Grid.Row="3" Fill="Tomato"/>
+        <Rectangle Grid.Row="4" Fill="black"/>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="20"/>
+        </Grid.ColumnDefinitions>
+    </Grid>
+</Window>
