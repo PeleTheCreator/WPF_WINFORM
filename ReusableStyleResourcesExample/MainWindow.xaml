@@ -5,8 +5,61 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ReusableStyleResourcesExample"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="500" Width="500">
+
+    <!--<Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Margin" Value="0,10,0,0"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+
+        <Style TargetType="Button" x:Key="OkButtonStyle" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Foreground" Value="Wheat"/>
+            <Setter Property="Background" Value="Green"/>
+        </Style>
+    </Window.Resources>-->
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition/>
+            <RowDefinition  Height="150"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,15,0,0">
+            <StackPanel.Resources>
+                <Style TargetType="TextBox" x:Key="stackpanelScopedStyle" BasedOn="{StaticResource {x:Type TextBox} }">
+                    <Setter Property="Background" Value="Wheat"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Style>
+            </StackPanel.Resources>
+            <!--<TextBox Width="200" Height="40" Margin="0,10,0,0"/>
+            <TextBox Width="200" Height="40" Margin="0,10,0,0"/>
+            <TextBox Width="200" Height="40" Margin="0,10,0,0"/>-->
+            <TextBox />
+            <TextBox Style="{StaticResource stackpanelScopedStyle}"/>
+            <TextBox/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <StackPanel Orientation="Vertical">
+                <!--<Button Content="Normal" Width="150" Height="40" Margin="0,0,0,15" />
+                <Button Content="Normal" Width="150" Height="40" Margin="0,0,0,15" />-->
+                <Button Content="Normal" />
+                <Button Content="Normal" />
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <!--<Button Content="Ok" Width="150" Height="40" Foreground="Wheat" Background="Green"/>-->
+            <Button Content="Ok" Style="{StaticResource OkButtonStyle}"/>
+        </Grid>
+
     </Grid>
 </Window>
