@@ -1,0 +1,526 @@
+﻿<Window x:Class="EmployeeManager.MainWindows"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:EmployeeManager.ViewModels"
+        xmlns:converters="clr-namespace:EmployeeManager.Converters"
+        mc:Ignorable="d"
+        Title="Employee Management System" 
+        Height="700" 
+        Width="1200"
+        WindowStartupLocation="CenterScreen">
+
+    <!-- 
+        UPDATED XAML with:
+        1. VALUE CONVERTERS registered and used
+        2. VALIDATION enabled on all input controls
+        3. Loading indicator
+        4. Better user experience
+    -->
+
+    <Window.Resources>
+        <!-- 
+            =============================================
+            VALUE CONVERTERS - Register here to use throughout window
+            =============================================
+        -->
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        <converters:InverseNullToVisibilityConverter x:Key="InverseNullToVisibility"/>
+        <converters:InverseBoolConverter x:Key="InverseBool"/>
+        <converters:CountToBoolConverter x:Key="CountToBool"/>
+
+        <!-- Styles -->
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+            <!-- VALIDATION STYLING - Red border when invalid -->
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="BorderBrush" Value="Red"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                    <Setter Property="ToolTip" 
+                            Value="{Binding RelativeSource={RelativeSource Self}, 
+                                          Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+            <!-- VALIDATION STYLING -->
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="BorderBrush" Value="Red"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DatePicker">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Height" Value="30"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="15,5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5,5,0,5"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 
+            =============================================
+            TOOLBAR with IsEnabled bound to IsLoading (inverted)
+            DEMONSTRATES: InverseBoolConverter
+            When IsLoading=true, buttons are disabled
+            =============================================
+        -->
+        <Border Grid.Row="0" 
+                Background="#2196F3" 
+                Padding="10">
+            <StackPanel Orientation="Horizontal" 
+                       IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}">
+
+                <Button Content="➕ Add Employee" 
+                        Command="{Binding AddEmployeeCommand}"
+                        Background="#4CAF50"
+                        Foreground="White"/>
+
+                <Button Content="✏️ Edit Employee" 
+                        Command="{Binding EditEmployeeCommand}"
+                        Background="#FF9800"
+                        Foreground="White"/>
+
+                <Button Content="🗑️ Delete Employee" 
+                        Command="{Binding DeleteEmployeeCommand}"
+                        Background="#F44336"
+                        Foreground="White"/>
+
+                <Button Content="🔄 Refresh" 
+                        Command="{Binding LoadEmployeesCommand}"
+                        Background="#607D8B"
+                        Foreground="White"/>
+
+                <Separator Width="20" Background="Transparent"/>
+
+                <TextBox Width="200" 
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <VisualBrush Stretch="None" AlignmentX="Left">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock Text="🔍 Search employees..." 
+                                                             Foreground="Gray" 
+                                                             Margin="5,0,0,0"/>
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+
+                <Button Content="Search" 
+                        Command="{Binding SearchCommand}"
+                        Background="#3F51B5"
+                        Foreground="White"/>
+
+                <Button Content="Clear" 
+                        Command="{Binding ClearSearchCommand}"
+                        Background="#9E9E9E"
+                        Foreground="White"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 
+            =============================================
+            MAIN CONTENT AREA
+            =============================================
+        -->
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 
+                =============================================
+                LEFT PANEL - Employee List
+                =============================================
+            -->
+            <GroupBox Grid.Column="0" 
+                      Header="Employee List" 
+                      Margin="0,0,5,0">
+                <Grid>
+                    <!-- DataGrid -->
+                    <DataGrid ItemsSource="{Binding Employees}"
+                              SelectedItem="{Binding SelectedEmployee}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              SelectionMode="Single"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              CanUserSortColumns="True"
+                              AlternatingRowBackground="#F5F5F5"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding EmployeeId}" Width="50"/>
+                            <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="120"/>
+                            <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="120"/>
+                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="200"/>
+                            <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="120"/>
+                            <DataGridTextColumn Header="Hire Date" 
+                                              Binding="{Binding HireDate, StringFormat={}{0:MM/dd/yyyy}}" 
+                                              Width="100"/>
+                            <DataGridTextColumn Header="Salary" 
+                                              Binding="{Binding Salary, StringFormat={}{0:C2}}" 
+                                              Width="100"/>
+                            <DataGridTextColumn Header="Department" Binding="{Binding DepartmentName}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- 
+                        "No Employees" message - shows when list is empty
+                        DEMONSTRATES: CountToBoolConverter + InverseBoolToVisibilityConverter
+                        Visible when Employees.Count = 0
+                    -->
+                    <Border Background="#FFF3CD" 
+                            Padding="20"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                        <!--<Border.Visibility>
+                            <MultiBinding Converter="{StaticResource InverseBoolToVisibility}">
+                                <Binding Path="Employees.Count" Converter="{StaticResource CountToBool}"/>
+                            </MultiBinding>
+                        </Border.Visibility>-->
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Employees.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="📋 No employees found" 
+                                      FontSize="16" 
+                                      FontWeight="Bold"
+                                      HorizontalAlignment="Center"/>
+                            <TextBlock Text="Click 'Add Employee' to create a new employee" 
+                                      Margin="0,10,0,0"
+                                      HorizontalAlignment="Center"
+                                      Foreground="Gray"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </GroupBox>
+
+            <!-- 
+                =============================================
+                RIGHT PANEL - Employee Entry Form
+                DEMONSTRATES: NullToVisibilityConverter
+                Only visible when SelectedEmployee is not null
+                =============================================
+            -->
+            <GroupBox Grid.Column="1" 
+                      Header="Employee Details" 
+                      Margin="5,0,0,0"
+                      Visibility="{Binding SelectedEmployee, Converter={StaticResource NullToVisibility}}">
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+
+                        <!-- First Name with VALIDATION -->
+                        <Label Content="First Name:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding SelectedEmployee.FirstName, 
+                                       UpdateSourceTrigger=PropertyChanged, 
+                                       ValidatesOnNotifyDataErrors=True}"/>
+                        <!-- 
+                            ValidatesOnNotifyDataErrors=True
+                            This enables automatic validation display
+                            Red border appears when Employee.FirstName has errors
+                            Tooltip shows error message
+                        -->
+
+                        <!-- Last Name with VALIDATION -->
+                        <Label Content="Last Name:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding SelectedEmployee.LastName, 
+                                       UpdateSourceTrigger=PropertyChanged, 
+                                       ValidatesOnNotifyDataErrors=True}"/>
+
+                        <!-- Email with VALIDATION -->
+                        <Label Content="Email:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding SelectedEmployee.Email, 
+                                       UpdateSourceTrigger=PropertyChanged, 
+                                       ValidatesOnNotifyDataErrors=True}"/>
+
+                        <!-- Phone with VALIDATION -->
+                        <Label Content="Phone:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding SelectedEmployee.Phone, 
+                                       UpdateSourceTrigger=PropertyChanged, 
+                                       ValidatesOnNotifyDataErrors=True}"/>
+
+                        <!-- Hire Date with VALIDATION -->
+                        <Label Content="Hire Date:" FontWeight="Bold"/>
+                        <DatePicker SelectedDate="{Binding SelectedEmployee.HireDate, 
+                                                   ValidatesOnNotifyDataErrors=True}"/>
+
+                        <!-- Salary with VALIDATION -->
+                        <Label Content="Salary:" FontWeight="Bold"/>
+                        <TextBox Text="{Binding SelectedEmployee.Salary, 
+                                       UpdateSourceTrigger=PropertyChanged, 
+                                       ValidatesOnNotifyDataErrors=True}"/>
+
+                        <!-- Department with VALIDATION -->
+                        <Label Content="Department:" FontWeight="Bold"/>
+                        <ComboBox ItemsSource="{Binding Departments}"
+                                 DisplayMemberPath="DepartmentName"
+                                 SelectedValuePath="DepartmentId"
+                                 SelectedValue="{Binding SelectedEmployee.DepartmentId, 
+                                                ValidatesOnNotifyDataErrors=True}"/>
+
+                        <!-- Validation Summary -->
+                        <Border Background="#FFEBEE" 
+                               BorderBrush="#F44336" 
+                               BorderThickness="1" 
+                               Padding="10" 
+                               Margin="5,10,5,5"
+                               Visibility="{Binding SelectedEmployee.HasErrors, 
+                                           Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel>
+                                <TextBlock Text="⚠️ Please fix the following errors:" 
+                                          FontWeight="Bold" 
+                                          Foreground="#D32F2F"/>
+                                <TextBlock Text="• Check all fields with red borders" 
+                                          Margin="0,5,0,0" 
+                                          Foreground="#D32F2F"/>
+                                <TextBlock Text="• Hover over red fields to see error details" 
+                                          Foreground="#D32F2F"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Orientation="Horizontal" 
+                                   HorizontalAlignment="Center" 
+                                   Margin="0,20,0,0">
+
+                            <Button Command="{Binding SaveEmployeeCommand}"
+                                   Background="#4CAF50"
+                                   Foreground="White"
+                                   MinWidth="100">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Setter Property="Content" Value="💾 Save"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                                <Setter Property="Content" Value="💾 Update"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <Button Content="❌ Cancel" 
+                                   Command="{Binding CancelCommand}"
+                                   Background="#F44336"
+                                   Foreground="White"
+                                   MinWidth="100"/>
+                        </StackPanel>
+
+                        <!-- Info Text -->
+                        <TextBlock Margin="10,20,10,10" 
+                                  TextWrapping="Wrap" 
+                                  Foreground="Gray"
+                                  FontSize="11">
+                            <Run Text="💡 Validation Tips:"/>
+                            <LineBreak/>
+                            <Run Text="• All fields validate as you type"/>
+                            <LineBreak/>
+                            <Run Text="• Red border indicates invalid input"/>
+                            <LineBreak/>
+                            <Run Text="• Hover over red fields for error details"/>
+                            <LineBreak/>
+                            <Run Text="• Save button disabled until all errors fixed"/>
+                        </TextBlock>
+                    </StackPanel>
+                </ScrollViewer>
+            </GroupBox>
+
+            <!-- 
+                "Select Employee" message - shows when nothing selected
+                DEMONSTRATES: InverseNullToVisibilityConverter
+                Visible when SelectedEmployee IS null
+            -->
+            <Border Grid.Column="1" 
+                    Background="#E3F2FD" 
+                    Margin="5,0,0,0"
+                    Visibility="{Binding SelectedEmployee, Converter={StaticResource InverseNullToVisibility}}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="👈 Select an employee to view details" 
+                              FontSize="14" 
+                              HorizontalAlignment="Center"
+                              Foreground="#1976D2"/>
+                    <TextBlock Text="or click 'Add Employee' to create new" 
+                              Margin="0,10,0,0"
+                              HorizontalAlignment="Center"
+                              Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 
+            =============================================
+            LOADING OVERLAY
+            DEMONSTRATES: BoolToVisibilityConverter
+            Shows semi-transparent overlay when IsLoading=true
+            =============================================
+        -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              Background="#80000000"
+              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
+            <Border Background="White" 
+                    Padding="30" 
+                    CornerRadius="10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="⏳ Loading..." 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              HorizontalAlignment="Center"/>
+                    <TextBlock Text="Please wait while we process your request" 
+                              Margin="0,10,0,0"
+                              HorizontalAlignment="Center"
+                              Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 
+            =============================================
+            STATUS BAR
+            =============================================
+        -->
+        <StatusBar Grid.Row="2" Background="#F5F5F5">
+            <StatusBarItem>
+                <TextBlock Text="ℹ️" Margin="5,0"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" FontWeight="SemiBold"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem HorizontalAlignment="Right">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Total Employees: " Foreground="Gray"/>
+                    <TextBlock Text="{Binding Employees.Count}" 
+                              FontWeight="Bold" 
+                              Foreground="#2196F3"/>
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
+
+<!-- 
+=============================================================================
+VALUE CONVERTERS IN ACTION - SUMMARY:
+=============================================================================
+
+1. BoolToVisibilityConverter:
+   - Loading overlay: Visible when IsLoading=true
+   - Validation summary: Visible when HasErrors=true
+
+2. InverseBoolToVisibilityConverter:
+   - "No employees" message: Visible when list is empty
+
+3. NullToVisibilityConverter:
+   - Employee form: Visible when employee is selected
+
+4. InverseNullToVisibilityConverter:
+   - "Select employee" message: Visible when nothing selected
+
+5. InverseBoolConverter:
+   - Buttons: Enabled when NOT loading
+   - DataGrid: Enabled when NOT loading
+
+6. CountToBoolConverter:
+   - Used with "No employees" message visibility
+
+
+VALIDATION FEATURES:
+
+1. Real-time validation as user types
+2. Red border on invalid controls
+3. Tooltip shows error message on hover
+4. Validation summary shows all errors
+5. Save button disabled when errors exist
+6. Clean separation: validation in Model, display in View
+
+
+WHY THIS IS BETTER THAN BEFORE:
+
+WITHOUT CONVERTERS:
+- ViewModel has UI-specific properties
+- More code to maintain
+- Hard to test
+- Violates MVVM
+
+WITH CONVERTERS:
+- ViewModel is clean and focused
+- Converters are reusable
+- Easy to test
+- Proper MVVM separation
+
+
+LOADING INDICATOR:
+
+- Semi-transparent overlay during operations
+- User can't click buttons while loading
+- Professional user experience
+- Prevents concurrent operations
+
+=============================================================================
+-->

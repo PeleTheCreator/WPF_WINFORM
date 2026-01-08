@@ -1,0 +1,35 @@
+﻿
+
+<Application x:Class="EmployeeManager.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindows.xaml">
+    <!-- 
+        App.xaml is the application entry point
+        StartupUri specifies which window opens first
+        
+        Application.Resources defines application-wide resources
+        These styles/templates are available to ALL windows
+    -->
+    <Application.Resources>
+        <!-- 
+            Global application styles can be defined here
+            These override default WPF styles
+        -->
+
+        <!-- Example: Global font settings -->
+        <Style TargetType="Window">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <!-- 
+            You can define:
+            - Brushes (colors used throughout app)
+            - Styles (reusable UI formatting)
+            - Templates (complete UI element redesigns)
+            - Converters (data transformation for binding)
+            - Resource dictionaries (organize large style collections)
+        -->
+    </Application.Resources>
+</Application>
